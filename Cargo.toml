@@ -3,6 +3,9 @@ name = "list-features"
 version = "0.1.0"
 edition = "2021"
 
+readme = "readme.md"
+repository = "https://codeberg.org/dder/list-features"
+
 [features]
 test = []
 
