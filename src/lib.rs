@@ -1,27 +1,71 @@
 use std::collections::HashSet;
 use std::io::BufRead;
+use std::fmt::Write;
 
 
-/// Returns the list of enabled features.
+/// Returns the list of enabled features as a `Vec<String>`.
 /// 
-/// It reads from `std::env::vars` and filters against the features listed in the provided Cargo.toml file.
-/// It should only be called in build scripts or code executed during a Cargo build.
-/// Panics if the file can't be read.  /// # Arguments
+/// Reads from `std::env::vars` and filters the features based on those listed in the specified `Cargo.toml` file.
+/// This function should only be called in build scripts or code executed during a Cargo build process.
+/// 
+/// Unless its output format doesn’t suit you, you’ll probably want to use [list_enabled_as_string] instead.
+/// 
+/// # Panics
+/// 
+/// Panics if the file at `cargo_toml_path` cannot be read.
+/// 
+/// # Arguments
 ///
-/// * `cargo_file` - Path to the toml file to use as source for the available features list. Default: "Cargo.toml"
-pub fn list_enabled_features(cargo_file: Option<&str>) -> Vec<String> {
-  let path = cargo_file.unwrap_or("Cargo.toml");
-  let all_features = list_all_features(path);
-  list_enabled_features_among(&all_features)
+/// * `cargo_toml_path` - Optional path to the `Cargo.toml` file used as the source for the available features list.
+///  If `None` provided, defaults to `"Cargo.toml"``.
+pub fn list_enabled(cargo_toml_path: Option<&str>) -> Vec<String> {
+  let cargo_toml_path = cargo_toml_path.unwrap_or("Cargo.toml");
+  let all_features = list_all(cargo_toml_path);
+  list_enabled_among(&all_features)
+}
+
+/// Returns the list of enabled features as a `String`.
+/// 
+/// It’s a wrapper around [list_enabled] that provides a `String` that should be usable as-is in an output file of the build script.
+/// The output format is:
+/// ```rust
+/// pub const CONST_NAME: &[&str] = &[
+/// "feature1",
+/// "feature2",
+/// ];
+/// ```
+/// 
+/// # Panics
+/// 
+/// Panics if the file at `cargo_toml_path` cannot be read.
+/// 
+/// ## Arguments
+///
+/// * `const_name` - Name of the contant to be written ("CONST_NAME" in the example above).
+/// * `cargo_toml_path` - Optional path to the `Cargo.toml` file used as the source for the available features list.
+///  If `None` provided, defaults to `"Cargo.toml"`.
+pub fn list_enabled_as_string(const_name: &str, cargo_toml_path: Option<&str>) -> String {
+  let enabled_features = list_enabled(cargo_toml_path);
+  let mut buf = String::new();
+  writeln!(buf, "pub const {const_name}: &[&str] = &[").unwrap();
+  for feature in enabled_features {
+    writeln!(buf, r#""{feature}","#).unwrap();
+  }
+  writeln!(buf, "];").unwrap();
+  buf
 }
 
 /// Parses a Cargo.toml file and returns the set of declared feature names.
 /// Only the `[features]` section is considered.
 ///
 /// Panics if the file can't be read.
-pub fn list_all_features(path: &str) -> HashSet<String> {
-  let file = std::fs::File::open(path).unwrap_or_else(|_| {
-    panic!("Cannot open {path}");
+/// 
+/// ## Arguments
+///
+/// * `cargo_toml_path` - Path to the toml file to use as source for the available features list.
+pub fn list_all(cargo_toml_path: &str) -> HashSet<String> {
+  let file = std::fs::File::open(cargo_toml_path).unwrap_or_else(|_| {
+    panic!("Cannot open {cargo_toml_path}");
   });
   let reader = std::io::BufReader::new(file);
 
@@ -72,7 +116,7 @@ where
 ///
 /// This reads from `std::env::vars` and filters against the provided set.
 /// It should only be called in build scripts or code executed during a Cargo build.
-fn list_enabled_features_among(all_features: &std::collections::HashSet<String>) -> Vec<String> {
+fn list_enabled_among(all_features: &std::collections::HashSet<String>) -> Vec<String> {
   let mut enabled: Vec<String> = std::env::vars()
     .filter_map(|(k, _)| {
       if let Some(name) = k.strip_prefix("CARGO_FEATURE_") {
@@ -95,6 +139,6 @@ fn list_enabled_features_among(all_features: &std::collections::HashSet<String>)
   enabled
 }
 #[cfg(feature = "test")]
-pub fn test_list_enabled_features_among(all_features: &std::collections::HashSet<String>) -> Vec<String> {
-  list_enabled_features_among(all_features)
+pub fn test_list_enabled_among(all_features: &std::collections::HashSet<String>) -> Vec<String> {
+  list_enabled_among(all_features)
 }
