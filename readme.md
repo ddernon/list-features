@@ -1,32 +1,38 @@
 # list-features
 
-During compilation, extracts a list of enabled feature flags that you can then save and display at run-time.
+Extracts the list of enabled feature flags during compilation. These flags can then be saved and displayed at run-time.
 
-"Double zero" dependency, as this crate 1) has no dependency and 2) won’t, in usual cases, be a run-time dependency.
+## Key Features
+- "Double zero" dependency: This crate has no dependency and won’t, in its typical use case, be a run-time dependency.
+- Low Rust version requirement: Compatible with Rust version 1.58.
 
+If these characteristics are not of interest to you, the [built](https://crates.io/crates/built) or [toml](https://crates.io/crates/toml)
+crates may be more appropriate for your needs. Otherwise, read on :)
+
+## Note
+This is a preview release, I’m still setting up stuff. It already should not change too much, but you might want to wait
+for version 0.2+ if you want to be reasonably sure that a breaking change won’t soon follow.
 
 ## Example
 ```rust
-// in build.rs
+// In build.rs
 let out_dir = std::env::var("OUT_DIR").unwrap();
-let file_path = format!("{out_dir}/build_info.rs");
-let features = list_features::list_enabled_as_string("ENABLED_FEATURES", None);
-std::fs::write(file_path, features).unwrap();
+let build_info_path = format!("{out_dir}/build_info.rs");
+let features = list_features::list_enabled_as_string("ENABLED_FEATURES");
+std::fs::write(build_info_path, features).unwrap();
 
-// in main.rs
+// In main.rs
 include!(concat!(env!("OUT_DIR"), "/build_info.rs"));
-for feature in ENABLED_FEATURES {
-  println!(output, " {feature}");
-}
+println!("Features: {:?}", ENABLED_FEATURES);
 ```
 
-
 ## Windows 7 compatibility
-I’m not sure of the minimum required Rust version. I took Rust 1.77 as a target so as to keep it Windows 7 compatible.
+The minimum required Rust version is 1.58. While I believe it shouldn’t change much in the foreseeable future, my main objective is to
+remain at or below Rust 1.77, so as to keep Windows 7 compatibility.
 
-For Rust 1.77 compat (Win 7):
+For Rust 1.77 compatibility:
 - change `version = 4` to `version = 3` in `Cargo.lock`
-- then clippy and tests can be run as follow:
+- then clippy and the tests can be run as follow:
 ```
 cargo +1.77 clippy
 cargo +1.77 test --features test

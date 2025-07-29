@@ -4,13 +4,16 @@
 //! in a format that can be directly saved in build artifacts, which can be then included
 //! elsewhere in the program and read at run time.
 //! 
+//! Other functions are made available in case you prefer obtaining intermediate data
+//! or want to provide more parameters, but they’re probably not what you’re looing for.
+//! 
 //! # Examples
 //!
 //! See the example included with the [`list_enabled_as_string`] function.
 
 
 use std::collections::HashSet;
-use std::io::BufRead;
+use std::io::{self, BufRead};
 use std::fmt::Write;
 
 
@@ -34,19 +37,30 @@ use std::fmt::Write;
 /// # Returns
 ///
 /// A `Vec<String>` containing the names of the declared features, ordered with `default` first and then sorted alphabetically.
-pub fn list_enabled(cargo_toml_path: Option<&str>) -> Vec<String> {
-  let cargo_toml_path = cargo_toml_path.unwrap_or("Cargo.toml");
-  let all_features = list_all(cargo_toml_path);
+pub fn list_enabled() -> Vec<String> {
+  list_enabled_with_path("Cargo.toml")
+}
+pub fn list_enabled_with_path(cargo_toml_path: &str) -> Vec<String> {
+  let all_features = list_all(cargo_toml_path).unwrap();
   list_enabled_among(&all_features)
 }
 
-/// Returns the list of enabled features as a `String`.
+/// Generates a constant declaration containing enabled Cargo features.
 /// 
 /// It’s a wrapper around [`list_enabled`] that provides a `String` that should be usable as is in an output file of the build script.
 /// This function should only be called in build scripts or code executed during a Cargo build process, as
 /// the required `CARGO_FEATURE_*` environment variables will be missing otherwise.
 /// 
-/// The output is string containing something like:
+/// # Panics
+/// 
+/// Panics if the `Cargo.toml` file cannot be read.
+/// 
+/// # Arguments
+///
+/// * `const_name` - Name of the constant to generate.
+/// 
+/// # Returns
+/// A string containing the code for the constant declaration, like:
 /// ```
 /// pub const CONST_NAME: &[&str] = &[
 /// "feature1",
@@ -54,23 +68,13 @@ pub fn list_enabled(cargo_toml_path: Option<&str>) -> Vec<String> {
 /// ];
 /// ```
 /// 
-/// # Panics
-/// 
-/// Panics if the file at `cargo_toml_path` cannot be read.
-/// 
-/// # Arguments
-///
-/// * `const_name` - Name of the constant to be written ("CONST_NAME" in the example above, "ENABLED_FEATURES" in the example below).
-/// * `cargo_toml_path` - Optional path to the `Cargo.toml` file used as the source for the available features list.
-///   If `None` provided, defaults to `"Cargo.toml"`.
-/// 
 /// # Examples
 ///
 /// ```ignore
 /// // in build.rs
 /// let out_dir = std::env::var("OUT_DIR").unwrap();
 /// let file_path = format!("{out_dir}/build_info.rs");
-/// let features = list_features::list_enabled_as_string("ENABLED_FEATURES", None);
+/// let features = list_features::list_enabled_as_string("ENABLED_FEATURES", Some("Cargo.toml"));
 /// std::fs::write(file_path, features).unwrap();
 ///
 /// // in main.rs
@@ -79,8 +83,19 @@ pub fn list_enabled(cargo_toml_path: Option<&str>) -> Vec<String> {
 ///   println!(output, " {feature}");
 /// }
 /// ```
-pub fn list_enabled_as_string(const_name: &str, cargo_toml_path: Option<&str>) -> String {
-  let enabled_features = list_enabled(cargo_toml_path);
+pub fn list_enabled_as_string(const_name: &str) -> String {
+  list_enabled_as_string_with_path(const_name, "Cargo.toml")
+}
+
+/// Generates a constant declaration containing enabled Cargo features.
+/// 
+/// Same as [`list_enabled_as_string`] but allows specifying a custom path to `Cargo.toml`.
+/// 
+/// # Arguments  
+/// * `const_name` - Name of the constant to generate
+/// * `cargo_toml_path` - Path to the Cargo.toml file
+pub fn list_enabled_as_string_with_path(const_name: &str, cargo_toml_path: &str) -> String {
+  let enabled_features = list_enabled_with_path(cargo_toml_path);
   let mut buf = String::new();
   writeln!(buf, "pub const {const_name}: &[&str] = &[").unwrap();
   for feature in enabled_features {
@@ -93,12 +108,8 @@ pub fn list_enabled_as_string(const_name: &str, cargo_toml_path: Option<&str>) -
 /// Parses a Cargo.toml file and returns the set of declared feature names.
 /// 
 /// Only the `[features]` section is considered. While it should be able handle reasonable edge cases, this function also tries to
-/// keep things simple and is not a replacement for a full [toml parser](https://crates.io/crates/toml).
+/// keep things simple and is not a replacement for a full parser such as the [toml crate](https://crates.io/crates/toml).
 ///
-/// # Panics
-/// 
-/// Panics if the specified file cannot be read.
-/// 
 /// # Arguments
 ///
 /// * `cargo_toml_path` - Path to the `Cargo.toml` file used as the source for the available features list.
@@ -106,17 +117,12 @@ pub fn list_enabled_as_string(const_name: &str, cargo_toml_path: Option<&str>) -
 /// # Returns
 ///
 /// A `HashSet<String>` containing the names of the declared features.
-pub fn list_all(cargo_toml_path: &str) -> HashSet<String> {
-  let file = std::fs::File::open(cargo_toml_path).unwrap_or_else(|_| {
-    panic!("Cannot open {cargo_toml_path}");
-  });
-  let reader = std::io::BufReader::new(file);
-
-  let lines = reader.lines().map(|line| {
-    line.expect("Could not read line")
-  });
-
-  parse_feature_keys_from_lines(lines)
+pub fn list_all<S: AsRef<str>>(cargo_toml_path: S) -> Result<HashSet<String>, io::Error> {
+  let file = std::fs::File::open(cargo_toml_path.as_ref())?;
+  let reader = io::BufReader::new(file);
+  let lines: Result<Vec<String>, io::Error> = reader.lines().collect();
+  let lines = lines?;
+  Ok(parse_feature_keys_from_lines(lines))
 }
 
 // Core parser logic that works on any line iterator.
