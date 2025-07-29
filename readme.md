@@ -4,13 +4,13 @@ Extracts the list of enabled feature flags during compilation. These flags can t
 
 ## Key Features
 - "Double zero" dependency: This crate has no dependency and won’t, in its typical use case, be a run-time dependency.
-- Low Rust version requirement: Compatible with Rust version 1.58.
+- Low Rust version requirement: Compatible with Rust version 1.58 (see also [Windows 7 compatibility](#windows-7-compatibility)).
 
 If these characteristics are not of interest to you, the [built](https://crates.io/crates/built) or [toml](https://crates.io/crates/toml)
 crates may be more appropriate for your needs. Otherwise, read on :)
 
 ## Note
-This is a preview release, I’m still setting up stuff. It already should not change too much, but you might want to wait
+This is a preview release, I’m still setting things up. It already should not change too much, but you might want to wait
 for version 0.2+ if you want to be reasonably sure that a breaking change won’t soon follow.
 
 ## Example
@@ -28,7 +28,7 @@ println!("Features: {:?}", ENABLED_FEATURES);
 
 ## Windows 7 compatibility
 The minimum required Rust version is 1.58. While I believe it shouldn’t change much in the foreseeable future, my main objective is to
-remain at or below Rust 1.77, so as to keep Windows 7 compatibility.
+remain at or below Rust 1.77, so as to keep [Windows 7 compatibility](https://blog.rust-lang.org/2024/02/26/Windows-7/).
 
 For Rust 1.77 compatibility:
 - change `version = 4` to `version = 3` in `Cargo.lock`

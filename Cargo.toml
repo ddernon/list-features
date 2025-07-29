@@ -13,5 +13,3 @@ repository = "https://codeberg.org/dder/list-features"
 
 [features]
 test = []
-
-[dependencies]
