@@ -9,7 +9,8 @@
 //! 
 //! # Examples
 //!
-//! See the example included with the [`list_enabled_as_string`] function.
+//! See the example included with the [`list_enabled_as_string`] function and the
+//! [example crate](https://framagit.org/dder/list-features/-/tree/master/example_crate)
 
 
 use std::collections::HashSet;
@@ -89,7 +90,7 @@ pub fn list_enabled_with_path(cargo_toml_path: &str) -> Vec<String> {
 /// // in build.rs
 /// let out_dir = std::env::var("OUT_DIR").unwrap();
 /// let file_path = format!("{out_dir}/build_info.rs");
-/// let features = list_features::list_enabled_as_string("ENABLED_FEATURES", Some("Cargo.toml"));
+/// let features = list_features::list_enabled_as_string("ENABLED_FEATURES");
 /// std::fs::write(file_path, features).unwrap();
 ///
 /// // in main.rs

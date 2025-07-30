@@ -4,12 +4,14 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.58"
 
-authors = ["David Dernoncourt"]
+authors = ["David Dernoncourt <daviddernoncourt.com>"]
+license = "MIT"
 description = "Extracts the list of enabled feature flags during compilation."
 categories = ["development-tools::build-utils"]
 keywords = ["features"]
 readme = "readme.md"
 repository = "https://framagit.org/dder/list-features"
+exclude = ["/.github/", "/.vscode/"]
 
 [features]
 test = []
