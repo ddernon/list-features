@@ -1,0 +1,14 @@
+[package]
+name = "example_crate"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.58"
+publish = false
+
+[features]
+default = ["feature1"]
+feature1 = []
+feature2 = []
+
+[build-dependencies]
+list-features = { path = "../"}

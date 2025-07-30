@@ -19,11 +19,28 @@ use std::fmt::Write;
 
 /// Returns the list of enabled features as a `Vec<String>`.
 /// 
-/// Reads from `std::env::vars` and filters the features based on those listed in the specified `Cargo.toml` file.
+/// Reads from `std::env::vars` and filters the features based on those listed in `Cargo.toml`.
 /// This function should only be called in build scripts or code executed during a Cargo build process, as
 /// the required `CARGO_FEATURE_*` environment variables will be missing otherwise.
 /// 
 /// Unless its output format doesn’t suit you, you’ll probably want to use [`list_enabled_as_string`] instead.
+/// 
+/// See also [`list_enabled_with_path`].
+/// 
+/// # Panics
+/// 
+/// Panics if the `Cargo.toml` file cannot be read.
+/// 
+/// # Returns
+///
+/// A `Vec<String>` containing the names of the enabled features, ordered with `default` first and then sorted alphabetically.
+pub fn list_enabled() -> Vec<String> {
+  list_enabled_with_path("Cargo.toml")
+}
+
+/// Returns the list of enabled features as a `Vec<String>`.
+/// 
+/// Same as [`list_enabled`] but allows specifying a custom path to `Cargo.toml`.
 /// 
 /// # Panics
 /// 
@@ -31,15 +48,11 @@ use std::fmt::Write;
 /// 
 /// # Arguments
 ///
-/// * `cargo_toml_path` - Optional path to the `Cargo.toml` file used as the source for the available features list.
-///   If `None` provided, defaults to `"Cargo.toml"``.
+/// * `cargo_toml_path` - Path to the `Cargo.toml` file
 /// 
 /// # Returns
 ///
-/// A `Vec<String>` containing the names of the declared features, ordered with `default` first and then sorted alphabetically.
-pub fn list_enabled() -> Vec<String> {
-  list_enabled_with_path("Cargo.toml")
-}
+/// A `Vec<String>` containing the names of the enabled features, ordered with `default` first and then sorted alphabetically.
 pub fn list_enabled_with_path(cargo_toml_path: &str) -> Vec<String> {
   let all_features = list_all(cargo_toml_path).unwrap();
   list_enabled_among(&all_features)
@@ -51,6 +64,8 @@ pub fn list_enabled_with_path(cargo_toml_path: &str) -> Vec<String> {
 /// This function should only be called in build scripts or code executed during a Cargo build process, as
 /// the required `CARGO_FEATURE_*` environment variables will be missing otherwise.
 /// 
+/// See also [`list_enabled_as_string_with_path`].
+/// 
 /// # Panics
 /// 
 /// Panics if the `Cargo.toml` file cannot be read.
@@ -60,12 +75,12 @@ pub fn list_enabled_with_path(cargo_toml_path: &str) -> Vec<String> {
 /// * `const_name` - Name of the constant to generate.
 /// 
 /// # Returns
-/// A string containing the code for the constant declaration, like:
+/// A `String` containing the code for the constant declaration, like:
 /// ```
-/// pub const CONST_NAME: &[&str] = &[
+/// String::from(r#"pub const CONST_NAME: &[&str] = &[
 /// "feature1",
 /// "feature2",
-/// ];
+/// ];"#);
 /// ```
 /// 
 /// # Examples
@@ -91,9 +106,13 @@ pub fn list_enabled_as_string(const_name: &str) -> String {
 /// 
 /// Same as [`list_enabled_as_string`] but allows specifying a custom path to `Cargo.toml`.
 /// 
+/// # Panics
+/// 
+/// Panics if the specified file cannot be read.
+/// 
 /// # Arguments  
 /// * `const_name` - Name of the constant to generate
-/// * `cargo_toml_path` - Path to the Cargo.toml file
+/// * `cargo_toml_path` - Path to the `Cargo.toml` file
 pub fn list_enabled_as_string_with_path(const_name: &str, cargo_toml_path: &str) -> String {
   let enabled_features = list_enabled_with_path(cargo_toml_path);
   let mut buf = String::new();
@@ -105,7 +124,7 @@ pub fn list_enabled_as_string_with_path(const_name: &str, cargo_toml_path: &str)
   buf
 }
 
-/// Parses a Cargo.toml file and returns the set of declared feature names.
+/// Parses a `Cargo.toml` file and returns the set of declared feature names.
 /// 
 /// Only the `[features]` section is considered. While it should be able handle reasonable edge cases, this function also tries to
 /// keep things simple and is not a replacement for a full parser such as the [toml crate](https://crates.io/crates/toml).
