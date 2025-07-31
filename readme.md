@@ -1,5 +1,11 @@
 # list-features
 
+[![crates.io](https://img.shields.io/crates/v/list-features.svg)](https://crates.io/crates/list-features)
+[![license](https://img.shields.io/crates/l/list-features?logo=open%20source%20initiative&logoColor=%23fff)](https://framagit.org/dder/list-features/blob/master/license.txt)
+![minimum suppported rust version](https://img.shields.io/crates/msrv/list-features?logo=rust)
+[![docs.rs](https://img.shields.io/docsrs/list-features?logo=docs.rs)](https://docs.rs/list-features)
+[![pipeline status](https://framagit.org/dder/list-features/badges/master/pipeline.svg)](https://framagit.org/dder/list-features/pipelines)
+
 Extracts the list of enabled feature flags during compilation. These flags can then be saved and displayed at run-time.
 
 ## Highlights
@@ -9,7 +15,12 @@ Extracts the list of enabled feature flags during compilation. These flags can t
 If these characteristics are not important for your use case, the [built](https://crates.io/crates/built) or [toml](https://crates.io/crates/toml)
 crates might be more appropriate for your needs. Otherwise, stick around :)
 
-## Example
+## Usage
+Add `list-features` as a build dependency.  
+Use it in your `build.rs` script to obtain the list of enabled features for the current build.  
+Include that list where you need it, for instance in `main.rs`.
+
+### Example
 ```rust
 // In build.rs
 let out_dir = std::env::var("OUT_DIR").unwrap();
@@ -21,7 +32,8 @@ std::fs::write(build_info_path, features).unwrap();
 include!(concat!(env!("OUT_DIR"), "/build_info.rs"));
 println!("Features: {:?}", ENABLED_FEATURES);
 ```
-See also the [example crate](https://framagit.org/dder/list-features/-/tree/master/example_crate) and the docs.
+
+See also the [example crate](https://framagit.org/dder/list-features/-/tree/master/example_crate) and the [docs](https://docs.rs/list-features).
 
 ## Windows 7 compatibility
 The minimum required Rust version is 1.58. While this is unlikely to change in the foreseeable future,

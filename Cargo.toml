@@ -1,6 +1,6 @@
 [package]
 name = "list-features"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.58"
 
@@ -11,7 +11,11 @@ categories = ["development-tools::build-utils"]
 keywords = ["features"]
 readme = "readme.md"
 repository = "https://framagit.org/dder/list-features"
-exclude = ["/.github/", "/.vscode/"]
+exclude = [
+  "/.github/",
+  "/.vscode/",
+  "/.gitlab-ci.yml"
+]
 
 [features]
-test = []
+test = [] # makes some private functions public for cargo test
