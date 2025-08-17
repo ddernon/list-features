@@ -5,7 +5,7 @@
 //! elsewhere in the program and read at run time.
 //! 
 //! Other functions are made available in case you prefer obtaining intermediate data
-//! or want to provide more parameters, but they’re probably not what you’re looing for.
+//! or want to provide more parameters, but they’re probably not what you’re looking for.
 //! 
 //! # Examples
 //!
@@ -186,12 +186,17 @@ where
 // This reads from `std::env::vars` and filters against the provided set.
 // It should only be called in build scripts or code executed during a Cargo build.
 fn list_enabled_among(all_features: &std::collections::HashSet<String>) -> Vec<String> {
+  let normalize = |s: &str| s.to_lowercase().replace('_', "-");
+
   let mut enabled: Vec<String> = std::env::vars()
     .filter_map(|(k, _)| {
       if let Some(name) = k.strip_prefix("CARGO_FEATURE_") {
-        let normalized = name.to_lowercase().replace('_', "-");
-        if all_features.contains(&normalized) {
-          return Some(normalized);
+        let norm_name = normalize(name);
+        if let Some(matched) = all_features
+          .iter()
+          .find(|feat| normalize(feat) == norm_name)
+        {
+          return Some(matched.clone());
         }
       }
       None

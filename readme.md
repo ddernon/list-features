@@ -11,6 +11,7 @@ Extracts the list of enabled feature flags during compilation. These flags can t
 ## Highlights
 - Zero dependencies: This crate has no dependency and won’t, in its typical use case, be a run-time dependency.
 - Low Rust version requirement: Compatible with Rust version 1.58 (see also [Windows 7 compatibility](#windows-7-compatibility)).
+- Tiny: It does one thing and there’s no plan to add more. Excluding tests/docs, the library is currently under 80 lines of code.
 
 If these characteristics are not important for your use case, the [built](https://crates.io/crates/built) or [toml](https://crates.io/crates/toml)
 crates might be more appropriate for your needs. Otherwise, stick around :)

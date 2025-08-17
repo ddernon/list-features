@@ -95,6 +95,22 @@ fn accepts_multiple_features_sections() {
 }
 
 #[test]
+fn accept_dashes_and_underscores_and_caps() {
+  let toml = r#"
+    [features]
+    name-with-dashes = []
+    name_with_underscore = []
+    SHOUTing = []
+  "#;
+
+  let features = parse_from_str(toml);
+  assert_eq!(features.len(), 3);
+  assert!(features.contains("name-with-dashes"));
+  assert!(features.contains("name_with_underscore"));
+  assert!(features.contains("SHOUTing"));
+}
+
+#[test]
 fn tolerates_weird_spacing() {
   let toml = r#"
     [features]
@@ -151,6 +167,7 @@ fn accepts_quoted_feature_keys() {
   assert_eq!(features.len(), 3);
   assert!(features.contains("foo"));
   assert!(features.contains("bar-baz"));
+   // that one is actually not valid, but we’re not the compilation police
   assert!(features.contains("with space"));
 }
 
